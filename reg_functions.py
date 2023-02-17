@@ -330,6 +330,8 @@ def SimuRealLinearExactSparse5per(N,M,N1,SNR, seed=1):
     np.random.rand(seed*2+1)
     X1 =  np.random.normal(0, 1, (N1, M))
     M1=int(0.05*M)
+    if M1 == 0: 
+        M1 = 1
     beta = np.append(np.append(np.array([SNR]),np.random.normal(5, 1,M1-1)),np.array([0]*(M-M1)))
 
     Y = np.dot(X,beta)+np.random.normal(0, 1,N)
