@@ -1,18 +1,18 @@
 import numpy as np
-from sklearn.tree import DecisionTreeRegressor
 from scipy.stats import norm
 import matplotlib.pyplot as plt
+from sklearn.kernel_ridge import KernelRidge
 
 def kSparseLinearModel(N, M, K):
     """
     Generates a linear model. The coefficients, beta, are K-sparse 
-    and distributed ~ N(5, 1). Returns:
+    and distributed ~ N(0, 2). Returns:
     - X = a numpy array with M rows and N columns.
     - Y = X @ beta + N(0, 1). A linear combination of the features in X with standard normal error. 
     """
     X = np.random.normal(0, 1, (N, M))
     # k-sparse array of coefficients
-    beta = np.concatenate((np.random.normal(5, 1, K), np.zeros((M - K)))) 
+    beta = np.concatenate((np.random.normal(0, 2, K), np.zeros((M - K)))) 
     Y = X @ beta + np.random.normal(0, 1, N)
     # Y = (Y - np.mean(Y)) / np.std(Y)
     return X, Y
@@ -44,28 +44,49 @@ def buildMP(X, Y, n_ratio, m_ratio):
     return idx_I, idx_F, x_mp, y_mp
 
 
+class Ensemble:
+    def __init__(self, model):
+        self.base = model
+
+    def fit(self, X, Y, n_ratio, m_ratio, B):
+        N, M = X.shape
+        self.mp_observations = np.zeros((N, B), dtype=bool)
+        self.mp_features = np.zeros((M, B), dtype=bool)
+        self.ensemble = [None] * B
+        for b in range(B):
+            idx_I, idx_F, x_mp, y_mp = buildMP(X, Y, n_ratio, m_ratio)
+            self.ensemble[b] = self.base.fit(x_mp, y_mp) 
+            self.mp_observations[idx_I, b] = True
+            self.mp_features[idx_F, b] = True  
+        return self
+        
+    def predict(self, X):
+        predictions = np.empty((len(X), len(self.ensemble)))
+        for b, m in enumerate(self.ensemble):
+            predictions[:, b] = m.predict(X[:, self.mp_features[:, b]])
+        return predictions
+    
+
 
 def predict(X, Y, n_ratio, m_ratio, B, model, model_param):
     """
-    Fits models
+    Fits and predicts models
     """
     N, M = X.shape
     mp_observations = np.zeros((N, B), dtype=bool)
     mp_features = np.zeros((M, B), dtype=bool)
     predictions = np.empty((N, B))
-    for b in range(B):        
+    for b in range(B):
         idx_I, idx_F, x_mp, y_mp = buildMP(X, Y, n_ratio, m_ratio)
-        predictions[:, b] = model(x_mp, y_mp, model_param).predict(X[:, idx_F])
+        predictions[:, b] = model.fit(x_mp, y_mp).predict(X[:, idx_F])
         mp_observations[idx_I, b] = True
         mp_features[idx_F, b] = True  
     return predictions, mp_observations, mp_features
 
 
-def DecisionTreeReg(X, Y, model_param):
-    return DecisionTreeRegressor().fit(X,Y)
 
 
-def computeDeltaCap(Y, j1, j2, predictions, mp_observations, mp_features):
+def computeDeltaCap(Y, j1, j2, predictions, mp_observations, mp_features, metric=np.square):
     """
     TODO: apply bonferroni correction if more than one test is made.
     Computes the squared error vectors from LOCO and LOO predictions.
@@ -83,7 +104,7 @@ def computeDeltaCap(Y, j1, j2, predictions, mp_observations, mp_features):
     loco12 = loco1 * loco2
     mu_loco12 = np.sum(predictions * loco12, axis=1) / np.sum(loco12, axis=1)
 
-    # fig, axs = plt.subplots(1, 4)
+    # fig, axs = plt.subplots(4, 1, figsize=(10,10))
     # axs[0].spy(loo)
     # axs[1].spy(loco1)
     # axs[2].spy(loco2)
@@ -91,10 +112,11 @@ def computeDeltaCap(Y, j1, j2, predictions, mp_observations, mp_features):
     # plt.show()
     # exit(0)
 
-    residual_loo = np.square(Y - mu_loo)
-    residual_loco1 = np.square(Y - mu_loco1)
-    residual_loco2 = np.square(Y - mu_loco2)
-    residual_loco12 = np.square(Y - mu_loco12)
+
+    residual_loo = metric(Y - mu_loo)
+    residual_loco1 = metric(Y - mu_loco1)
+    residual_loco2 = metric(Y - mu_loco2)
+    residual_loco12 = metric(Y - mu_loco12)
 
     return residual_loco12, residual_loco1,  residual_loco2, residual_loo    
 
