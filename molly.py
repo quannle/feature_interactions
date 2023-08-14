@@ -85,7 +85,7 @@ def g(M, N, K, n_ratio, m_ratio, B, model, J1, J2, snr):
 
     Y += X[:, 0] + X[:, 1] + X[:, 2] + X[:, 3] + X[:, 4]
 
-    gen_model = "singletanh"
+    gen_model = "singletanh2"
 
     if gen_model == "single":
         Y += snr * (X[:, J1] * X[:, J2])
@@ -103,6 +103,8 @@ def g(M, N, K, n_ratio, m_ratio, B, model, J1, J2, snr):
         Y += snr * relu(X[:, J1] * X[:, J2])
     elif gen_model == "singletanh":
         Y += snr * tanh(X[:, J1] * X[:, J2])
+    elif gen_model == "singletanh2":
+        Y += snr * tanh(X[:, J1]) * tanh(X[:, J2])
     else:
         print("ERROR", file=sys.stderr)
 
