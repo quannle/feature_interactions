@@ -86,7 +86,8 @@ def predict(X, Y, n_ratio, m_ratio, B, model, model_param):
 
 
 
-def computeDeltaCap(Y, j1, j2, predictions, mp_observations, mp_features, metric=np.square):
+def computeDeltaCap(Y, j1, j2, predictions, mp_observations, mp_features, 
+        metric=np.square):
     """
     TODO: apply bonferroni correction if more than one test is made.
     Computes the squared error vectors from LOCO and LOO predictions.
