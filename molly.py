@@ -81,7 +81,7 @@ def g(M, N, K, n_ratio, m_ratio, B, model, J1, J2, snr):
 
     Y += X[:, 0] + X[:, 1] + X[:, 2] + X[:, 3] + X[:, 4]
     # Y += snr * X[:, J1] 
-    # Y += (X[:, 1] * X[:, 2]) + (X[:, 2] * X[:, 3]) + (X[:, 3] * X[:, 4])
+    Y += (X[:, 1] * X[:, 2]) + (X[:, 2] * X[:, 3]) + (X[:, 3] * X[:, 4])
     Y += snr * (X[:, J1] * X[:, J2])
 
     # Y += snr * (X[:, J1] > 0) * (X[:, J2] > 0)
@@ -135,6 +135,7 @@ def plot_importance(models, SNR, importance):
     ax1.set_ylabel(f"Feature Importance")
     ax1.legend(model_names)
 
+    plt.tight_layout()
     plt.show()
 
 
