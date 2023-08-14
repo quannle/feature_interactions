@@ -1,3 +1,5 @@
+
+import sys
 import functions as mp
 import numpy as np
 import matplotlib.pyplot as plt
@@ -27,11 +29,14 @@ def main():
         KernelRidge(alpha=.001, kernel="rbf")
     ]
 
-    h(SNR, models, M, N, K, n_ratio, m_ratio, B, J1, J2, num_trials)
+    if len(sys.argv) == 1:
+        return h(SNR, models, M, N, K, n_ratio, m_ratio, B, J1, J2, num_trials)
+
+    with f as open("importance.npy", "rb"):
+        importance = np.load(f)
+        plot_importance(models, SNR, importance)
 
 
-
-    return 0
 
 
 def f(X, Y, n_ratio, m_ratio, B, model, J1, J2, metric): 
@@ -109,7 +114,7 @@ def h(SNR, models, M, N, K, n_ratio, m_ratio, B, J1, J2, num_trials):
 
     with open("importance.npy", "wb") as f:
         np.save(f, importance)
-    return plot_importance(models, SNR, importance)
+    return 0
 
 def plot_importance(models, SNR, importance):
     model_names = [model.__class__.__name__ 
