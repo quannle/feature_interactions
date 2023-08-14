@@ -85,7 +85,7 @@ def g(M, N, K, n_ratio, m_ratio, B, model, J1, J2, snr):
 
     Y += X[:, 0] + X[:, 1] + X[:, 2] + X[:, 3] + X[:, 4]
 
-    gen_model = "multipletanh"
+    gen_model = "multipletanh2"
 
     if gen_model == "single":
         Y += snr * (X[:, J1] * X[:, J2])
@@ -111,6 +111,11 @@ def g(M, N, K, n_ratio, m_ratio, B, model, J1, J2, snr):
         Y += (X[:, 1] * X[:, 2]) + (X[:, 2] * X[:, 3]) + (X[:, 3] * X[:, 4])
         Y += snr * (X[:, J1] * X[:, J2])
         X = stash
+    elif gen_model == "multipletanh2":
+        Y += (tanh(X[:, 1] * X[:, 2]) + tanh(X[:, 2] * X[:, 3]) + 
+              tanh(X[:, 3] * X[:, 4]))
+        Y += snr * tanh(X[:, J1] * X[:, J2])
+
     else:
         print("ERROR", file=sys.stderr)
 
