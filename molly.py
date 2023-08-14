@@ -24,7 +24,7 @@ def main():
     num_trials = 1
     models = [
         MLPRegressor(solver="lbfgs", max_iter=500),
-        RandomForestRegressor(n_estimators=50, max_depth=None),
+        RandomForestRegressor(n_estimators=100, max_depth=None),
         KernelRidge(alpha=.001, kernel="polynomial", degree=2),
         KernelRidge(alpha=.001, kernel="rbf")
     ]
@@ -111,8 +111,6 @@ def h(SNR, models, M, N, K, n_ratio, m_ratio, B, J1, J2, num_trials):
             result = next(iterator)
             importance[i, j, :] = result["delta"]
     
-    print(importance)
-
     with open("importance.npy", "wb") as f:
         np.save(f, importance)
     return 0
