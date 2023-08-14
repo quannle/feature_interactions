@@ -83,8 +83,8 @@ def g(M, N, K, n_ratio, m_ratio, B, model, J1, J2, snr):
     Y += X[:, 0] + X[:, 1] + X[:, 2] + X[:, 3] + X[:, 4]
 
     stash = X
-    X = relu(X)
-    Y += snr * (X[:, J1] * X[:, J2])
+    # X = relu(X)
+    Y += snr * relu(X[:, J1] * X[:, J2])
     X = stash
     # Y += snr * X[:, J1] 
     # Y += (X[:, 1] * X[:, 2]) + (X[:, 2] * X[:, 3]) + (X[:, 3] * X[:, 4])
