@@ -1,6 +1,10 @@
 import functions as mp
 import numpy as np
+import matplotlib.pyplot as plt
 from multiprocessing import Pool
+from sklearn.kernel_ridge import KernelRidge
+from sklearn.ensemble import RandomForestRegressor
+
 
 def main():
     M = 25
@@ -22,6 +26,8 @@ def main():
         KernelRidge(alpha=.001, kernel="polynomial", degree=2),
         KernelRidge(alpha=.001, kernel="rbf")
     ]
+
+    h(SNR, models, M, N, K, n_ratio, m_ratio, B, J1, J2, num_trials)
 
 
 
@@ -77,50 +83,54 @@ def g(M, N, K, n_ratio, m_ratio, B, model, J1, J2, snr):
     
     return f(X, Y, n_ratio, m_ratio, B, model, J1, J2, np.abs) 
 
-def h(SNR, models, M, N, K, n_ratio, m_ratio, B, J1, J2, num_trials)
-    residuals   = np.empty((len(SNR), 4, len(models)))
-    powers      = np.empty((len(SNR), 6, len(models)))
-    errors      = np.empty((len(SNR), 6, len(models)))
-    importance  = np.empty((len(SNR), 6, len(models)))
+def h(SNR, models, M, N, K, n_ratio, m_ratio, B, J1, J2, num_trials):
+    residuals   = np.empty((len(models), len(SNR), 4))
+    powers      = np.empty((len(models), len(SNR), 6))
+    errors      = np.empty((len(models), len(SNR), 6))
+    importance  = np.empty((len(models), len(SNR), 6))
 
     iterable = [(M, N, K, n_ratio, m_ratio, B, model, J1, J2, snr)
-                for model in models for i in range(num_trials)]
+                for model in models for snr in SNR]
 
     with Pool() as p:
-        iterator = p.starmap(g, iterable)
+        iterator = iter(p.starmap(g, iterable))
 
     if num_trials != 1:
         print("you neglected to implement this")
         sys.exit(1)
 
-    for result in iterable:
-        null_rejection = np.array([r["!h_0"] for r in result])
-        residual = np.array([r["errors"] for r in result])
 
-        errors[i, :, j] = np.std(null_rejection, axis = 0)
-        powers[i, :, j] = np.mean(null_rejection, axis = 0)
-        residuals[i, :, j] = np.mean(residual, axis = 0)
-        importance[i, :, j] = np.mean([r["delta"] for r in result], axis = 0)
+    for i, model in enumerate(models):
+        for j, snr in enumerate(SNR):
+            result = next(iterator)
+            importance[i, j, :] = result["delta"]
+    
+    print(importance)
 
+    with open("importance.npy", "wb") as f:
+        np.save(f, importance)
+    return plot_importance(models, SNR, importance)
 
-    for i, snr in enumerate(SNR):
-        results = Parallel(n_jobs=-1)(
-                  delayed(h)(M, N, K, n_ratio, m_ratio, B, model, J1, J2, snr)
-                  for i in range(num_trials) for model in models)
+def plot_importance(models, SNR, importance):
+    model_names = [model.__class__.__name__ 
+            if model.__class__.__name__ != KernelRidge.__name__ 
+            else model.__class__.__name__ + " " + model.get_params()["kernel"]
+            for model in models]
 
+    fig, ax1 = plt.subplots(1, 1, figsize=(6, 5))
 
-        for j, model in enumerate(models):
-            result = results[j::len(models)]
+    for i, model_name in enumerate(model_names):   
+        ax1.plot(SNR, importance[i, :, 0])
+        # ax1.plot(SNR, importance[:, 2, j] + importance[:, 3, j] - importance[:, 1, j])
+        
 
+    ax1.set_title("Feature Importance")
+    ax1.set_xlabel("SNR values")
+    ax1.set_ylabel(f"Feature Importance")
+    ax1.legend(model_names)
 
-            # for k, hmetric in enumerate(["H21", "H22"]):
-            #     h2results = np.array(r[hmetric] for r in result)
-            #     H2[i, k, j] = np.mean(h2results)
-            #     H2err[i, k, j] = np.std(h2results)
+    plt.show()
 
-
-
-        print(f"\rfinished run {i} {snr}", end="")
 
 if __name__ == "__main__":
     main()
