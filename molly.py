@@ -80,7 +80,7 @@ def g(M, N, K, n_ratio, m_ratio, B, model, J1, J2, snr):
     X, Y = mp.kSparseLinearModel(N, M, K)
 
     Y += X[:, 0] + X[:, 1] + X[:, 2] + X[:, 3] + X[:, 4]
-    Y += snr * X[:, J1] 
+    # Y += snr * X[:, J1] 
     # Y += (X[:, 1] * X[:, 2]) + (X[:, 2] * X[:, 3]) + (X[:, 3] * X[:, 4])
     Y += snr * (X[:, J1] * X[:, J2])
 
