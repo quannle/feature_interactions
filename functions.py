@@ -1,18 +1,18 @@
 import numpy as np
 from scipy.stats import norm
 import matplotlib.pyplot as plt
-from sklearn.kernel_ridge import KernelRidge
+from sklearn.base import clone
 
 def kSparseLinearModel(N, M, K):
     """
     Generates a linear model. The coefficients, beta, are K-sparse 
-    and distributed ~ N(0, 2). Returns:
+    and distributed ~ N(5, 1). Returns:
     - X = a numpy array with M rows and N columns.
     - Y = X @ beta + N(0, 1). A linear combination of the features in X with standard normal error. 
     """
     X = np.random.normal(0, 1, (N, M))
     # k-sparse array of coefficients
-    beta = np.concatenate((np.random.normal(0, 2, K), np.zeros((M - K)))) 
+    beta = np.concatenate((np.random.normal(5, 1, K), np.zeros((M - K)))) 
     Y = X @ beta + np.random.normal(0, 1, N)
     # Y = (Y - np.mean(Y)) / np.std(Y)
     return X, Y
@@ -55,7 +55,7 @@ class Ensemble:
         self.ensemble = [None] * B
         for b in range(B):
             idx_I, idx_F, x_mp, y_mp = buildMP(X, Y, n_ratio, m_ratio)
-            self.ensemble[b] = self.base.fit(x_mp, y_mp) 
+            self.ensemble[b] = clone(self.base).fit(x_mp, y_mp) 
             self.mp_observations[idx_I, b] = True
             self.mp_features[idx_F, b] = True  
         return self
