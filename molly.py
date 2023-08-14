@@ -32,7 +32,7 @@ def main():
     if len(sys.argv) == 1:
         return h(SNR, models, M, N, K, n_ratio, m_ratio, B, J1, J2, num_trials)
 
-    with f as open("importance.npy", "rb"):
+    with open("importance.npy", "rb") as f:
         importance = np.load(f)
         plot_importance(models, SNR, importance)
 
