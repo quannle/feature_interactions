@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from multiprocessing import Pool
 from sklearn.kernel_ridge import KernelRidge
 from sklearn.ensemble import RandomForestRegressor
-
+from sklearn.neural_network import MLPRegressor
 
 def main():
     M = 25
@@ -23,7 +23,7 @@ def main():
     B = 1000 # from 1k to 10k
     num_trials = 1
     models = [
-        # MLPRegressor(solver="lbfgs", max_iter=500),
+        MLPRegressor(solver="lbfgs", max_iter=500),
         RandomForestRegressor(n_estimators=50, max_depth=None),
         KernelRidge(alpha=.001, kernel="polynomial", degree=2),
         KernelRidge(alpha=.001, kernel="rbf")
@@ -76,10 +76,11 @@ def f(X, Y, n_ratio, m_ratio, B, model, J1, J2, metric):
 
 
 
-def g(M, N, K, n_ratio, m_ratio, B, model, J1, J2, snr): 
+def g(M, N, K, n_ratio, m_ratio, B, model, J1, J2, snr):
     X, Y = mp.kSparseLinearModel(N, M, K)
-    # Y += snr * X[:, J1] 
+
     Y += X[:, 0] + X[:, 1] + X[:, 2] + X[:, 3] + X[:, 4]
+    # Y += snr * X[:, J1] 
     Y += (X[:, 1] * X[:, 2]) + (X[:, 2] * X[:, 3]) + (X[:, 3] * X[:, 4])
     Y += snr * (X[:, J1] * X[:, J2])
 
