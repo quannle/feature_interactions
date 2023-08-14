@@ -90,7 +90,7 @@ def g(M, N, K, n_ratio, m_ratio, B, model, J1, J2, snr):
     if gen_model == "single":
         Y += snr * (X[:, J1] * X[:, J2])
     elif gen_model == "triple":
-        X += 2
+        X += 1
         Y += snr * (X[:, J1] * X[:, J2] * X[:, J2 + 1])
     elif gen_model == "singlerelu2":
         Y += snr * relu(X[:, J1] * X[:, J2])
