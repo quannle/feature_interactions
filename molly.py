@@ -77,12 +77,15 @@ def f(X, Y, n_ratio, m_ratio, B, model, J1, J2, metric):
 def relu(x):
     return x * (x > 0)
 
+def tanh(x):
+    return np.tanh(4 * x)
+
 def g(M, N, K, n_ratio, m_ratio, B, model, J1, J2, snr):
     X, Y = mp.kSparseLinearModel(N, M, K)
 
     Y += X[:, 0] + X[:, 1] + X[:, 2] + X[:, 3] + X[:, 4]
 
-    gen_model = "multiplerelu2"
+    gen_model = "singletanh"
 
     if gen_model == "single":
         Y += snr * (X[:, J1] * X[:, J2])
@@ -98,6 +101,8 @@ def g(M, N, K, n_ratio, m_ratio, B, model, J1, J2, snr):
         Y += (relu(X[:, 1] * X[:, 2]) + relu(X[:, 2] * X[:, 3]) + 
               relu(X[:, 3] * X[:, 4]))
         Y += snr * relu(X[:, J1] * X[:, J2])
+    elif gen_model == "singletanh":
+        Y += snr * tanh(X[:, J1] * X[:, J2])
     else:
         print("ERROR", file=sys.stderr)
 
