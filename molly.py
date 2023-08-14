@@ -82,18 +82,28 @@ def g(M, N, K, n_ratio, m_ratio, B, model, J1, J2, snr):
 
     Y += X[:, 0] + X[:, 1] + X[:, 2] + X[:, 3] + X[:, 4]
 
-    stash = X
-    # X = relu(X)
-    Y += snr * relu(X[:, J1] * X[:, J2])
-    X = stash
+    gen_model = "multiplerelu"
+
+    if gen_model == "single":
+        Y += snr * (X[:, J1] * X[:, J2])
+    elif gen_model == "singlerelu2":
+        Y += snr * relu(X[:, J1] * X[:, J2])
+    elif gen_model == "multiplerelu":
+        stash = X
+        X = relu(X)
+        Y += (X[:, 1] * X[:, 2]) + (X[:, 2] * X[:, 3]) + (X[:, 3] * X[:, 4])
+        Y += snr * (X[:, J1] * X[:, J2])
+        X = stash
+    else:
+        print("ERROR", file=sys.stderr)
+
     # Y += snr * X[:, J1] 
-    # Y += (X[:, 1] * X[:, 2]) + (X[:, 2] * X[:, 3]) + (X[:, 3] * X[:, 4])
     # Y += (X[:, 2] * X[:, 3]) + (X[:, 3] * X[:, 4])
     # Y += snr * (X[:, J1] * X[:, J2] * X[:, J2 + 1])
 
     # Y += snr * (X[:, J1] > 0) * (X[:, J2] > 0)
-    Y = (Y - np.mean(Y)) / np.std(Y)
-    
+
+    Y = (Y - np.mean(Y)) / np.std(Y) 
     return f(X, Y, n_ratio, m_ratio, B, model, J1, J2, np.abs) 
 
 def h(SNR, models, M, N, K, n_ratio, m_ratio, B, J1, J2, num_trials):
